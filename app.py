@@ -7,14 +7,6 @@ from config import Config
 app = Flask(__name__)
 app.config.from_object(Config)
 
-@app.after_request
-def allow_iframe(response):
-    response.headers.pop('X-Frame-Options', None)
-    response.headers.pop('Content-Security-Policy', None)
-    # Optionally, add CSP instead of X-Frame-Options:
-    response.headers['Content-Security-Policy'] = "frame-ancestors 'self' https://test72107.wordpress.com/"
-    return response
-
 
 db.init_app(app)
 
