@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Sleeper Username</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Search Sleeper Username</h1>
+    <form action="/search_username" method="post">
+        <label for="username">Sleeper Username:</label>
+        <input type="text" id="username" name="username" required>
+        <button type="submit">Search</button>
+    </form>
+</body>
+</html>
