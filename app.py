@@ -53,8 +53,26 @@ def search_username():
         return f"Error fetching leagues data: {leagues_api_response.status_code}"
 
     year_leagues = leagues_api_response.json()
-    leagues_data = [{'name': league['name'], 'id': league['league_id']} for league in year_leagues if league.get('status') == 'in_season']
+    only_bestball = request.form.get('only_bestball') == "1"
+    exclude_bestball = request.form.get('exclude_bestball') == "1"
 
+    if only_bestball and exclude_bestball:
+        return "⚠️ Please select only one best ball filter option."
+
+    leagues_data = []
+    for league in year_leagues:
+        if league.get('status') != 'in_season':
+            continue
+
+        is_best_ball = league.get('settings', {}).get('best_ball', False)
+        print(f"✅ {league['name']} | best_ball: {is_best_ball}")
+
+        if only_bestball and not is_best_ball:
+            continue
+        if exclude_bestball and is_best_ball:
+            continue
+
+        leagues_data.append({'name': league['name'], 'id': league['league_id']})
     # Clear previous league associations for the user
     PlayerLeagueAssociation.query.filter_by(user_id=user_id).delete()
     db.session.commit()
@@ -91,6 +109,14 @@ def search_username():
     }
 
     player_leagues_count = {player_id: player_ids.count(player_id) for player_id in set(player_ids)}
+    # Map each player to the leagues they're in
+    player_league_names = {}
+    league_id_to_name = {league['id']: league['name'] for league in leagues_data}
+
+    for assoc in associations:
+        name = league_id_to_name.get(assoc.league_id, 'Unknown League')
+        player_league_names.setdefault(assoc.player_id, []).append(name)
+
     sorted_player_ids = sorted(player_leagues_count, key=player_leagues_count.get, reverse=True)
 
     players = []
@@ -99,15 +125,30 @@ def search_username():
         player_info = player_map.get(str(player_id), {'name': 'Unknown Player', 'position': 'Unknown Position'})
         league_count = player_leagues_count[player_id]
         percentage = (league_count / len(leagues_data)) * 100
-        players.append({'name': player_info['name'], 'position': player_info['position'], 'percentage': f"{percentage:.2f}%"})
+        players.append({
+        'name': player_info['name'],
+        'position': player_info['position'],
+        'percentage': f"{percentage:.2f}%",
+        'leagues': player_league_names.get(player_id, [])
+    })
 
-    return render_template('result.html', username=username, players=players, leagues=[])
+    filter_label = "All Leagues"
+    if only_bestball:
+        filter_label = "Only Best Ball Leagues"
+    elif exclude_bestball:
+        filter_label = "Excluding Best Ball Leagues"
+
+    return render_template('result.html', username=username, players=players, leagues=[], filter_label=filter_label)
+
 
 
 
 
 @app.route('/search_player', methods=['POST'])
 def search_player():
+    only_bestball = request.form.get('only_bestball') == "1"
+    exclude_bestball = request.form.get('exclude_bestball') == "1"
+
     username = request.form['username']
     player_name = request.form['player_name']
 
@@ -121,7 +162,20 @@ def search_player():
     leagues_api_response = requests.get(leagues_api_url)
     year_leagues = leagues_api_response.json()
 
-    leagues_data = [{'name': league['name'], 'id': league['league_id']} for league in year_leagues]
+    leagues_data = []
+    for league in year_leagues:
+        if league.get('status') != 'in_season':
+            continue
+
+        is_best_ball = league.get('settings', {}).get('best_ball', False)
+
+        if only_bestball and not is_best_ball:
+            continue
+        if exclude_bestball and is_best_ball:
+            continue
+
+        leagues_data.append({'name': league['name'], 'id': league['league_id']})
+
 
     player_ids = []
     associations = PlayerLeagueAssociation.query.filter_by(user_id=user_id).all()
@@ -139,7 +193,13 @@ def search_player():
         player_info = player_map.get(player_id, {'name': 'Unknown Player', 'position': 'Unknown Position'})
         league_count = player_leagues_count[player_id]
         percentage = (league_count / len(leagues_data)) * 100
-        players.append({'name': player_info['name'], 'position': player_info['position'], 'percentage': f"{percentage:.2f}%"})
+        players.append({
+        'name': player_info['name'],
+        'position': player_info['position'],
+        'percentage': f"{percentage:.2f}%",
+        'leagues': [league_map.get(assoc.league_id, 'Unknown League') for assoc in associations if assoc.player_id == player_id]
+    })
+
 
     searched_player = next((player for player in players if player['name'].lower() == player_name.lower()), None)
     leagues = []
@@ -150,3 +210,6 @@ def search_player():
 
     return render_template('result.html', username=username, players=players, searched_player=searched_player, leagues=leagues)
 
+
+if __name__ == "__main__":
+    app.run(debug=True)

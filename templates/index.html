@@ -7,9 +7,38 @@
 <body>
     <h1>Search Sleeper Username</h1>
     <form action="/search_username" method="post">
-        <label for="username">Sleeper Username:</label>
-        <input type="text" id="username" name="username" required>
-        <button type="submit">Search</button>
+    <label for="username">Sleeper Username:</label>
+    <input type="text" id="username" name="username" required>
+
+    <fieldset>
+    <legend>Best Ball League Options:</legend>
+
+    <input type="checkbox" id="only_bestball" name="only_bestball" value="1" onchange="toggleExclusive(this)">
+    <label for="only_bestball">Only Best Ball</label><br>
+
+    <input type="checkbox" id="exclude_bestball" name="exclude_bestball" value="1" onchange="toggleExclusive(this)">
+    <label for="exclude_bestball">Exclude Best Ball</label><br>
+</fieldset>
+
+<p id="checkbox-error" style="color: red; display: none;">You can only select one best ball filter option.</p>
+
+<script>
+function toggleExclusive(clickedBox) {
+    const only = document.getElementById('only_bestball');
+    const exclude = document.getElementById('exclude_bestball');
+    const error = document.getElementById('checkbox-error');
+
+    if (only.checked && exclude.checked) {
+        clickedBox.checked = false;
+        error.style.display = 'block';
+    } else {
+        error.style.display = 'none';
+    }
+}
+</script>
+
+
+    <button type="submit">Search</button>
     </form>
 </body>
 </html>

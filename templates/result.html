@@ -8,20 +8,39 @@
 </head>
 <body>
     <h1 class="center-title">Search Results for {{ username }}</h1>
+    {% if filter_label %}
+    <p class="center-title"><em>{{ filter_label }}</em></p>
+    {% endif %}
     <a href="/">Back to Username Search</a>
     <div class="container">
         <div class="players">
             <h2>Player Percentages</h2>
             <ul>
                 {% for player in players %}
-                    <li>{{ player.name }} ({{ player.position }}) - {{ player.percentage }}</li>
+                    <li>
+                        {{ player.name }} ({{ player.position }}) - {{ player.percentage }}
+                        {% if player.leagues %}
+                            <details>
+                                <summary>Leagues</summary>
+                                <ul>
+                                    {% for league in player.leagues %}
+                                        <li>{{ league }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </details>
+                        {% endif %}
+                    </li>
                 {% endfor %}
             </ul>
+
         </div>
         <div class="search-form">
             <h2>Search for a Player</h2>
             <form action="/search_player" method="post">
                 <input type="hidden" name="username" value="{{ username }}">
+                <input type="hidden" name="only_bestball" value="{{ '1' if filter_label == 'Only Best Ball Leagues' else '' }}">
+                <input type="hidden" name="exclude_bestball" value="{{ '1' if filter_label == 'Excluding Best Ball Leagues' else '' }}">
+
                 <label for="player_name">Player Name:</label>
                 <select id="player_name" name="player_name">
                     {% for player in players %}
@@ -29,6 +48,7 @@
                     {% endfor %}
                 </select>
                 <button type="submit">Search</button>
+            </form>
             </form>
             {% if searched_player %}
                 <h3>Search Results for {{ searched_player.name }}</h3>
