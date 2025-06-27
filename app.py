@@ -4,9 +4,11 @@ import requests
 import logging
 from config import Config
 
+
+
+
 app = Flask(__name__)
 app.config.from_object(Config)
-
 
 db.init_app(app)
 
@@ -65,7 +67,7 @@ def search_username():
             continue
 
         is_best_ball = league.get('settings', {}).get('best_ball', False)
-        print(f"✅ {league['name']} | best_ball: {is_best_ball}")
+        #print(f"✅ {league['name']} | best_ball: {is_best_ball}")
 
         if only_bestball and not is_best_ball:
             continue
@@ -121,7 +123,7 @@ def search_username():
 
     players = []
     for player_id in sorted_player_ids:
-        print(f"🔎 Looking for player_id: {player_id}")
+        #print(f"🔎 Looking for player_id: {player_id}")
         player_info = player_map.get(str(player_id), {'name': 'Unknown Player', 'position': 'Unknown Position'})
         league_count = player_leagues_count[player_id]
         percentage = (league_count / len(leagues_data)) * 100
@@ -138,7 +140,16 @@ def search_username():
     elif exclude_bestball:
         filter_label = "Excluding Best Ball Leagues"
 
-    return render_template('result.html', username=username, players=players, leagues=[], filter_label=filter_label)
+    return render_template(
+    'result.html',
+    username=username,
+    players=players,
+    all_leagues=[league['name'] for league in leagues_data],
+    searched_player=None,
+    filter_label=filter_label
+)
+
+
 
 
 
@@ -163,7 +174,8 @@ def search_player():
     year_leagues = leagues_api_response.json()
 
     leagues_data = []
-    for league in year_leagues:
+    total_leagues = len(year_leagues)
+    for index, league in enumerate(year_leagues, start=1):
         if league.get('status') != 'in_season':
             continue
 
@@ -175,6 +187,7 @@ def search_player():
             continue
 
         leagues_data.append({'name': league['name'], 'id': league['league_id']})
+
 
 
     player_ids = []
@@ -208,7 +221,7 @@ def search_player():
         if searched_player_id:
             leagues = [league_map.get(association.league_id, 'Unknown League') for association in PlayerLeagueAssociation.query.filter_by(player_id=searched_player_id, user_id=user_id).all()]
 
-    return render_template('result.html', username=username, players=players, searched_player=searched_player, leagues=leagues)
+    return render_template('result.html', username=username, players=players, searched_player=searched_player, leagues=leagues, all_leagues=[league['name'] for league in leagues_data],)
 
 
 if __name__ == "__main__":

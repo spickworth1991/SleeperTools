@@ -4,9 +4,11 @@
     <title>Search Sleeper Username</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
+
 <body>
     <h1>Search Sleeper Username</h1>
-    <form action="/search_username" method="post">
+    <div id="loading-message" class="text-center fw-bold fs-5" style="display: none;"></div>
+    <form id="usernameForm" action="/search_username" method="POST">
     <label for="username">Sleeper Username:</label>
     <input type="text" id="username" name="username" required>
 
@@ -22,8 +24,57 @@
 
 <p id="checkbox-error" style="color: red; display: none;">You can only select one best ball filter option.</p>
 
+
+
+
+    <button type="submit">Search</button>
+    <div id="loadingMessage" style="display: none; font-weight: bold; margin-top: 10px;"></div>
+
+    </form>
+
 <script>
-function toggleExclusive(clickedBox) {
+  const loadingText = [
+    "Loading", "Loading.", "Loading..", "Loading...", "Loading....",
+    "Still Loading...", "Wow you’ve got a lot of leagues...",
+    "Almost there...", "Crunching numbers...", "Finishing up..."
+  ];
+  let loadingIndex = 0;
+  let loadingInterval = null;
+
+  function showLoadingMessages() {
+    const loadingDiv = document.getElementById("loading-message");
+    loadingDiv.style.display = "block";
+    loadingDiv.innerText = loadingText[0];
+    loadingIndex = 0;
+
+    loadingInterval = setInterval(() => {
+      loadingIndex++;
+      if (loadingIndex < loadingText.length) {
+        loadingDiv.innerText = loadingText[loadingIndex];
+      } else {
+        clearInterval(loadingInterval);
+      }
+    }, 700);
+  }
+
+  function hideLoadingMessages() {
+    const loadingDiv = document.getElementById("loading-message");
+    loadingDiv.style.display = "none";
+    clearInterval(loadingInterval);
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("usernameSearchForm");
+    if (form) {
+      form.addEventListener("submit", () => {
+        showLoadingMessages();
+      });
+    }
+  });
+
+
+
+  function toggleExclusive(clickedBox) {
     const only = document.getElementById('only_bestball');
     const exclude = document.getElementById('exclude_bestball');
     const error = document.getElementById('checkbox-error');
@@ -38,7 +89,9 @@ function toggleExclusive(clickedBox) {
 </script>
 
 
-    <button type="submit">Search</button>
-    </form>
 </body>
+
+
+
+
 </html>

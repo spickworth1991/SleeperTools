@@ -5,8 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Results</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+
 </head>
+
+
 <body>
+    <div id="loadingContainer" class="text-center my-4" style="display: none;">
+    <div id="loadingMessage" class="fw-bold fs-5">Loading</div>
+</div>
+
     <h1 class="center-title">Search Results for {{ username }}</h1>
     {% if filter_label %}
     <p class="center-title"><em>{{ filter_label }}</em></p>
@@ -15,20 +23,20 @@
     <div class="container">
         <div class="players">
             <h2>Player Percentages</h2>
+            <div id="league-dropdown" class="mb-4">
+                <label for="leagueFilter">Leagues Used for Player Percentages:</label>
+                <select id="leagueFilter" class="form-control">
+                    {% for league in all_leagues %}
+                        <option value="{{ league }}">{{ league }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
             <ul>
                 {% for player in players %}
                     <li>
                         {{ player.name }} ({{ player.position }}) - {{ player.percentage }}
-                        {% if player.leagues %}
-                            <details>
-                                <summary>Leagues</summary>
-                                <ul>
-                                    {% for league in player.leagues %}
-                                        <li>{{ league }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </details>
-                        {% endif %}
+                        
                     </li>
                 {% endfor %}
             </ul>
@@ -62,5 +70,8 @@
             {% endif %}
         </div>
     </div>
+
 </body>
+
+
 </html>
