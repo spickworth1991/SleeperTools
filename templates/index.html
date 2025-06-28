@@ -1,13 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Sleeper Username</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 
 <body>
     <h1>Search Sleeper Username</h1>
-    <div id="loading-message" class="text-center fw-bold fs-5" style="display: none;"></div>
+    <div id="loading-message"></div>
     <form id="usernameForm" action="/search_username" method="POST">
     <label for="username">Sleeper Username:</label>
     <input type="text" id="username" name="username" required>
@@ -22,21 +24,20 @@
     <label for="exclude_bestball">Exclude Best Ball</label><br>
 </fieldset>
 
-<p id="checkbox-error" style="color: red; display: none;">You can only select one best ball filter option.</p>
-
-
-
-
-    <button type="submit">Search</button>
-    <div id="loadingMessage" style="display: none; font-weight: bold; margin-top: 10px;"></div>
-
+<p id="checkbox-error">You can only select one best ball filter option.</p>
+  <div class="submit-button">
+    <button id="submit" type="submit">Search</button>
+  </div>
     </form>
 
+</body>
+
 <script>
-  const loadingText = [
-    "Loading", "Loading.", "Loading..", "Loading...", "Loading....",
-    "Still Loading...", "Wow you’ve got a lot of leagues...",
-    "Almost there...", "Crunching numbers...", "Finishing up..."
+  const loadingMessages = [
+    "Loading", "Loading.", "Loading..", "Loading...", "Still Loading...",
+    "Wow you’ve got a lot of leagues...", "Almost there...",
+    "Crunching numbers...", "Finishing up...","Okay you really have a lot of leagues...",
+    'Im still loading...',
   ];
   let loadingIndex = 0;
   let loadingInterval = null;
@@ -44,18 +45,14 @@
   function showLoadingMessages() {
     const loadingDiv = document.getElementById("loading-message");
     loadingDiv.style.display = "block";
-    loadingDiv.innerText = loadingText[0];
-    loadingIndex = 0;
+    loadingDiv.innerText = loadingMessages[0];
+    loadingIndex = 1;
 
     loadingInterval = setInterval(() => {
-      loadingIndex++;
-      if (loadingIndex < loadingText.length) {
-        loadingDiv.innerText = loadingText[loadingIndex];
-      } else {
-        clearInterval(loadingInterval);
-      }
-    }, 700);
-  }
+        loadingDiv.innerText = loadingMessages[loadingIndex % loadingMessages.length];
+        loadingIndex++;
+      }, 2000); // Change every 2 seconds
+    }
 
   function hideLoadingMessages() {
     const loadingDiv = document.getElementById("loading-message");
@@ -64,34 +61,30 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("usernameSearchForm");
-    if (form) {
-      form.addEventListener("submit", () => {
+    const usernameForm = document.getElementById("usernameForm");
+    if (usernameForm) {
+      usernameForm.addEventListener("submit", () => {
         showLoadingMessages();
       });
     }
-  });
 
-
-
-  function toggleExclusive(clickedBox) {
     const only = document.getElementById('only_bestball');
     const exclude = document.getElementById('exclude_bestball');
     const error = document.getElementById('checkbox-error');
 
-    if (only.checked && exclude.checked) {
+    function validateCheckBoxes(clickedBox) {
+      if (only.checked && exclude.checked) {
         clickedBox.checked = false;
         error.style.display = 'block';
-    } else {
+      } else {
         error.style.display = 'none';
+      }
     }
-}
+
+    only?.addEventListener('change', () => validateCheckBoxes(only));
+    exclude?.addEventListener('change', () => validateCheckBoxes(exclude));
+  });
 </script>
-
-
-</body>
-
-
 
 
 </html>

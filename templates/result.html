@@ -11,9 +11,6 @@
 
 
 <body>
-    <div id="loadingContainer" class="text-center my-4" style="display: none;">
-    <div id="loadingMessage" class="fw-bold fs-5">Loading</div>
-</div>
 
     <h1 class="center-title">Search Results for {{ username }}</h1>
     {% if filter_label %}
@@ -34,10 +31,7 @@
 
             <ul>
                 {% for player in players %}
-                    <li>
-                        {{ player.name }} ({{ player.position }}) - {{ player.percentage }}
-                        
-                    </li>
+                    <li>{{ player.name }} ({{ player.position }}) - {{ player.percentage }}</li>
                 {% endfor %}
             </ul>
 

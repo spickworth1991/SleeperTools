@@ -150,11 +150,6 @@ def search_username():
 )
 
 
-
-
-
-
-
 @app.route('/search_player', methods=['POST'])
 def search_player():
     only_bestball = request.form.get('only_bestball') == "1"
