@@ -162,12 +162,13 @@ a:hover {
 
     .player-name,.league-name {
         font-size: 0.65rem;
-        max-width: 65%;
+        max-width: 100%;
         font-weight: bold;
         white-space: nowrap;
         overflow: hidden;
         padding: 5px;
         text-overflow: ellipsis;
+        flex:1;
     }
 
     .player-percentage {
