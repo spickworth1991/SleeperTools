@@ -137,50 +137,57 @@ a:hover {
 /* 🌐 Mobile Optimization */
 @media (max-width: 768px) {
     .container {
-        flex-direction: row;       /* ✅ Keep side-by-side layout */
+        flex-direction: row;
         flex-wrap: wrap;
-        justify-content: center;   /* ✅ Center columns if they shrink */
+        justify-content: center;
         gap: 5px;
     }
 
     .players,
     .search-form {
-        width: 48%;                /* ✅ Shrink width to fit both */
+        width: 48%;
         padding: 5px;
-        min-width:150px
+        min-width: 150px;
     }
 
     h2, label, select, button {
         font-size: 0.75rem;
     }
 
-    li.player-item, .league-item {
-        font-size: 0.25rem;
-        padding: 5px 8px;
-        column-gap: 4px;
+    li.player-item,
+    li.league-item {
+        font-size: 0.6rem;
+        padding: 6px 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 6px;
+        line-height: 1.2; /* ✅ match line height */
     }
 
-    .player-name,.league-name {
+    .player-name,
+    .league-name {
         font-size: 0.65rem;
-        max-width: 100%;
         font-weight: bold;
         white-space: nowrap;
         overflow: hidden;
-        padding: 5px;
         text-overflow: ellipsis;
-        flex:1;
+        padding-right: 6px;
+        flex: 1;
     }
 
     .player-percentage {
         font-size: 0.55rem;
-        margin-top: 3px;
+        white-space: nowrap;
+        margin-left: auto;
     }
 
     button {
         padding: 6px;
-        font-size: 0.5rem;
+        font-size: 0.6rem;
     }
 }
+
 
 /* 🌙 Dark Mode */
 @media (prefers-color-scheme: dark) {
