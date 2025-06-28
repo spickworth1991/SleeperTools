@@ -14,6 +14,7 @@ app.secret_key = 'your_secret_key'
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_FILE_DIR'] = os.path.join(app.root_path, 'flask_session')  # Optional but good
 app.config['SESSION_PERMANENT'] = False  # or True if you want long sessions
+app.config['SESSION_COOKIE_NAME'] = 'session'
 Session(app)
 
 
