@@ -134,7 +134,7 @@ a:hover {
     .search-form {
         width: 48%;                /* ✅ Shrink width to fit both */
         padding: 5px;
-        min-width:200px
+        min-width:150px
     }
 
     h2, label, select, button {
