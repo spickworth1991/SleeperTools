@@ -27,7 +27,151 @@ h1, h2, h3, label {
 }
 
 .loading-message{
+    text-align: center;body {
+    font-family: Arial, sans-serif;
+    background-color: #2b2f33;
+    color: #e3e3e3;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+h1, h2, h3, label {
+    color: #fff;
     text-align: center;
+}
+
+.center-title {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.loadingContainer,
+.loading-message {
+    text-align: center;
+    display: none;
+}
+
+#loading-message {
+    font-size: 1.2rem;
+    color: #007bff;
+}
+
+#error-message,
+#checkbox-error {
+    color: red;
+    display: none;
+    text-align: center;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.submit-button {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 900px;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.players,
+.search-form {
+    flex: 1;
+    min-width: 300px;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+li.player-item {
+    background-color: #3a3f44;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.player-name {
+    font-weight: bold;
+}
+
+.player-percentage {
+    color: #00e676;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+button {
+    background-color: #7289da;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+button:hover {
+    background-color: #5b6eae;
+}
+
+select,
+input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+a {
+    color: #7289da;
+    text-decoration: none;
+    margin-top: 20px;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* 🌐 Mobile Optimization */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .players,
+    .search-form {
+        width: 100%;
+    }
+
+    li.player-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .player-percentage {
+        margin-top: 5px;
+    }
+}
+
 }
 .center-title {
     text-align: center;
