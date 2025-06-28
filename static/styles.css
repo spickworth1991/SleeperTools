@@ -9,8 +9,16 @@ body {
     align-items: center;
 }
 
+h1 {
+    text-align: center;
+}
+
 h1, h2, h3, label {
     color: #fff;
+}
+
+.body{
+    text-align: center;
 }
 
 .loadingContainer {
