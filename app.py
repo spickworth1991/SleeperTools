@@ -1,14 +1,21 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session
+from flask_session import Session
+import os
 from models import db, SleeperPlayer, UserSearch, PlayerLeagueAssociation
 import requests
 import logging
 from config import Config
 
-
-
-
 app = Flask(__name__)
 app.config.from_object(Config)
+app.secret_key = 'your_secret_key'
+
+# 🔐 Use server-side session storage
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_FILE_DIR'] = os.path.join(app.root_path, 'flask_session')  # Optional but good
+app.config['SESSION_PERMANENT'] = False  # or True if you want long sessions
+Session(app)
+
 
 db.init_app(app)
 
@@ -75,6 +82,9 @@ def search_username():
             continue
 
         leagues_data.append({'name': league['name'], 'id': league['league_id']})
+    session[f'{username}_league_ids'] = [league['id'] for league in leagues_data]
+    session[f'{username}_league_names'] = [league['name'] for league in leagues_data]
+
     # Clear previous league associations for the user
     PlayerLeagueAssociation.query.filter_by(user_id=user_id).delete()
     db.session.commit()
@@ -140,6 +150,10 @@ def search_username():
     elif exclude_bestball:
         filter_label = "Excluding Best Ball Leagues"
 
+    # Store players and filter label in session for later use
+    session[f'{username}_cached_players'] = players
+    session[f'{username}_filter_label'] = filter_label
+
     return render_template(
     'result.html',
     username=username,
@@ -152,71 +166,48 @@ def search_username():
 
 @app.route('/search_player', methods=['POST'])
 def search_player():
-    only_bestball = request.form.get('only_bestball') == "1"
-    exclude_bestball = request.form.get('exclude_bestball') == "1"
-
     username = request.form['username']
     player_name = request.form['player_name']
+    user = UserSearch.query.filter_by(username=username).first()
+    if not user:
+        return "User not found"
 
-    user_search = UserSearch.query.filter_by(username=username).first()
-    if not user_search:
-        return "User not found in the database."
+    user_id = user.user_id
 
-    user_id = user_search.user_id
-    year = 2025
-    leagues_api_url = f"https://api.sleeper.app/v1/user/{user_id}/leagues/nfl/{year}"
-    leagues_api_response = requests.get(leagues_api_url)
-    year_leagues = leagues_api_response.json()
+    # Use leagues stored from initial username search
+    filtered_ids = session.get(f'{username}_league_ids', [])
+    filtered_names = session.get(f'{username}_league_names', [])
 
-    leagues_data = []
-    total_leagues = len(year_leagues)
-    for index, league in enumerate(year_leagues, start=1):
-        if league.get('status') != 'in_season':
-            continue
+    # Only calculate the searched player
+    searched_player = None
+    league_map = {id: name for id, name in zip(filtered_ids, filtered_names)}
 
-        is_best_ball = league.get('settings', {}).get('best_ball', False)
+    searched_player_obj = SleeperPlayer.query.filter(SleeperPlayer.name.ilike(player_name)).first()
+    if searched_player_obj:
+        player_id = searched_player_obj.id
+        associations = PlayerLeagueAssociation.query.filter_by(user_id=user_id, player_id=player_id).all()
+        leagues = [league_map.get(assoc.league_id, 'Unknown League') for assoc in associations]
+        searched_player = {
+            'name': searched_player_obj.name,
+            'position': searched_player_obj.position
+        }
+    else:
+        leagues = []
 
-        if only_bestball and not is_best_ball:
-            continue
-        if exclude_bestball and is_best_ball:
-            continue
+    # Use existing player data from last search
+    players = session.get(f'{username}_cached_players', [])
+    filter_label = session.get(f'{username}_filter_label', '')
 
-        leagues_data.append({'name': league['name'], 'id': league['league_id']})
+    return render_template(
+        'result.html',
+        username=username,
+        players=players,  # don't recalculate
+        searched_player=searched_player,
+        leagues=leagues,
+        all_leagues=[name for name in filtered_names],
+        filter_label=filter_label
+    )
 
-
-
-    player_ids = []
-    associations = PlayerLeagueAssociation.query.filter_by(user_id=user_id).all()
-    for association in associations:
-        player_ids.append(association.player_id)
-
-    player_map = {player.id: {'name': player.name, 'position': player.position} for player in SleeperPlayer.query.all()}
-    league_map = {league['id']: league['name'] for league in leagues_data}
-
-    player_leagues_count = {player_id: player_ids.count(player_id) for player_id in set(player_ids)}
-    sorted_player_ids = sorted(player_leagues_count, key=player_leagues_count.get, reverse=True)
-
-    players = []
-    for player_id in sorted_player_ids:
-        player_info = player_map.get(player_id, {'name': 'Unknown Player', 'position': 'Unknown Position'})
-        league_count = player_leagues_count[player_id]
-        percentage = (league_count / len(leagues_data)) * 100
-        players.append({
-        'name': player_info['name'],
-        'position': player_info['position'],
-        'percentage': f"{percentage:.2f}%",
-        'leagues': [league_map.get(assoc.league_id, 'Unknown League') for assoc in associations if assoc.player_id == player_id]
-    })
-
-
-    searched_player = next((player for player in players if player['name'].lower() == player_name.lower()), None)
-    leagues = []
-    if searched_player:
-        searched_player_id = next((key for key, value in player_map.items() if value['name'].lower() == player_name.lower()), None)
-        if searched_player_id:
-            leagues = [league_map.get(association.league_id, 'Unknown League') for association in PlayerLeagueAssociation.query.filter_by(player_id=searched_player_id, user_id=user_id).all()]
-
-    return render_template('result.html', username=username, players=players, searched_player=searched_player, leagues=leagues, all_leagues=[league['name'] for league in leagues_data],)
 
 
 if __name__ == "__main__":
