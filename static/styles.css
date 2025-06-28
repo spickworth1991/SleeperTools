@@ -137,26 +137,30 @@ a:hover {
     }
 
     h2, label, select, button {
-        font-size: 0.9rem;
-    }
-
-    li.player-item {
-        font-size: 0.55rem;
-        padding: 8px 10px;
-    }
-
-    .player-name {
         font-size: 0.75rem;
     }
 
+    li.player-item {
+        font-size: 0.25rem;
+        padding: 5px 8px;
+    }
+
+    .player-name {
+        font-size: 0.65rem;
+        font-weight: bold;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
     .player-percentage {
-        font-size: 0.555rem;
+        font-size: 0.55rem;
         margin-top: 3px;
     }
 
     button {
         padding: 6px;
-        font-size: 0.9rem;
+        font-size: 0.5rem;
     }
 }
 

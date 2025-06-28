@@ -31,7 +31,10 @@
 
             <ul>
                 {% for player in players %}
-                    <li>{{ player.name }} ({{ player.position }}) - {{ player.percentage }}</li>
+                    <li class="player-item">
+                        <span class="player-name">{{ player.name }} ({{ player.position }})</span>
+                        <span class="player-percentage">{{ player.percentage }}</span>
+                    </li>
                 {% endfor %}
             </ul>
 
