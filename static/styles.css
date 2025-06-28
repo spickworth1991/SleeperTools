@@ -134,6 +134,7 @@ a:hover {
     .search-form {
         width: 48%;                /* ✅ Shrink width to fit both */
         padding: 5px;
+        min-width:200px
     }
 
     h2, label, select, button {
@@ -143,10 +144,12 @@ a:hover {
     li.player-item {
         font-size: 0.25rem;
         padding: 5px 8px;
+        column-gap: 4px;
     }
 
     .player-name {
         font-size: 0.65rem;
+        max-width: 65%;
         font-weight: bold;
         white-space: nowrap;
         overflow: hidden;
