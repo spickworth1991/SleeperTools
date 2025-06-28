@@ -66,6 +66,19 @@ ul {
     margin: 0;
 }
 
+li.league-item {
+    background-color: #3a3f44;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.league-name {
+    font-weight: bold;
+}
+
 li.player-item {
     background-color: #3a3f44;
     border-radius: 8px;
@@ -127,7 +140,7 @@ a:hover {
         flex-direction: row;       /* ✅ Keep side-by-side layout */
         flex-wrap: wrap;
         justify-content: center;   /* ✅ Center columns if they shrink */
-        gap: 10px;
+        gap: 5px;
     }
 
     .players,
@@ -141,18 +154,19 @@ a:hover {
         font-size: 0.75rem;
     }
 
-    li.player-item {
+    li.player-item, .league-item {
         font-size: 0.25rem;
         padding: 5px 8px;
         column-gap: 4px;
     }
 
-    .player-name {
+    .player-name,.league-name {
         font-size: 0.65rem;
         max-width: 65%;
         font-weight: bold;
         white-space: nowrap;
         overflow: hidden;
+        padding: 5px;
         text-overflow: ellipsis;
     }
 

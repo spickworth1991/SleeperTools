@@ -59,7 +59,9 @@
                 <h3>Search Results for {{ searched_player.name }}</h3>
                 <ul>
                     {% for league in leagues %}
-                        <li>{{ league }}</li>
+                        <li class="league-item">
+                            <span class="league-name">{{ league }}</span>
+                        </li>
                     {% endfor %}
                 </ul>
             {% elif player_name %}
