@@ -9,6 +9,8 @@
 <body>
   <div class="creator-label">Created by: StickyPicky</div>
   <h1 class="center-title">Users with Shared Leagues</h1>
+  <a href="{{ url_for('home') }}">Back to Home</a>
+  <a href="{{ url_for('league_compare_page') }}">Back to League ID</a>
   <div class="container">
     {% if summary %}
         <div class="players">
@@ -39,7 +41,5 @@
       <p>No shared leagues found between users in this league.</p>
     {% endif %}
   </div>
-  <a href="{{ url_for('home') }}">Back to Home</a>
-  <a href="{{ url_for('league_compare_page') }}">Back to League ID</a>
 </body>
 </html>
