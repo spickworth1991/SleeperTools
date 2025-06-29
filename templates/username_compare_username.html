@@ -9,25 +9,27 @@
 <body>
   <div class="creator-label">Created by: StickyPicky</div>
   <h1 class="center-title">Compare Sleeper Users</h1>
-  <form action="{{ url_for('username_compare') }}" method="post">
-    <div class="search-form">
-      <label for="username1">Enter Username 1:</label>
-      <input type="text" id="username1" name="username1" required>
+  <div class="container centered-form-wrapper">
+    <form action="{{ url_for('username_compare') }}" method="post">
+      <div class="search-form">
+        <label for="username1">Enter Username 1:</label>
+        <input type="text" id="username1" name="username1" required>
 
-      <label for="username2">Enter Username 2:</label>
-      <input type="text" id="username2" name="username2" required>
-        <div class="year-selector">
-            <label for="years">Select Years to Compare:</label><br>
-            {% for year in range(current_year, 2016, -1) %}
-                <label>
-                <input type="checkbox" name="years" value="{{ year }}" {% if year == current_year %}checked{% endif %}>
-                {{ year }}
-                </label>
-            {% endfor %}
-        </div>
-      <button type="submit">Compare</button>
-    </div>
-  </form>
+        <label for="username2">Enter Username 2:</label>
+        <input type="text" id="username2" name="username2" required>
+          <div class="year-selector">
+              <label for="years">Select Years to Compare:</label><br>
+              {% for year in range(current_year, 2016, -1) %}
+                  <label>
+                  <input type="checkbox" name="years" value="{{ year }}" {% if year == current_year %}checked{% endif %}>
+                  {{ year }}
+                  </label>
+              {% endfor %}
+          </div>
+        <button type="submit">Compare</button>
+      </div>
+    </form>
+  </div>
   <a href="{{ url_for('home') }}">Back to Home</a>
 </body>
 </html>
