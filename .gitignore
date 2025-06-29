@@ -5,3 +5,24 @@ test.py
 .vscode/
 auto.js 
 __pycache__/
+
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+
+# Environment
+.venv/
+env/
+
+# Instance folder (runtime data)
+instance/
+
+# Flask session storage (if persistent)
+flask_session/
+
+# VSCode settings
+.vscode/
+
+# OS-specific files
+.DS_Store
+Thumbs.db

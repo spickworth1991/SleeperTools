@@ -114,7 +114,7 @@ def search_username():
     db.session.commit()
 
     # DEBUG: check database player IDs
-    print("🧠 First 5 player IDs in DB:", [p.id for p in SleeperPlayer.query.limit(5)])
+    #print("🧠 First 5 player IDs in DB:", [p.id for p in SleeperPlayer.query.limit(5)])
 
     player_map = {
         player.id: {'name': player.name, 'position': player.position}
@@ -262,12 +262,6 @@ def search_not_rostered():
     player_name = request.form['player_name']
     session['username'] = username  # persist for other pages
 
-    # Fetch user ID
-    user_resp = requests.get(f'https://api.sleeper.app/v1/user/{username}')
-    if user_resp.status_code != 200:
-        return f"Invalid Sleeper username: {username}", 400
-    user_id = user_resp.json().get('user_id')
-
     # Use session-stored league IDs and names
     league_ids = session.get(f'{username}_nr_league_ids', [])
     league_names = session.get(f'{username}_nr_league_names', [])
@@ -318,7 +312,7 @@ def get_player_info(player_id):
     if not username:
         return None
 
-    # First check cached players (from stock search)
+    # Cached from user session
     cached_players = session.get(f'{username}_cached_players', [])
     for player in cached_players:
         if player.get('id') == player_id or player.get('name') == player_id:
@@ -327,7 +321,7 @@ def get_player_info(player_id):
                 'position': player['position']
             }
 
-    # Fallback: use full player cache
+    # Fallback only to cached_all_players (not API)
     all_players = session.get('cached_all_players', {})
     player_data = all_players.get(player_id)
     if player_data:
@@ -337,6 +331,7 @@ def get_player_info(player_id):
         }
 
     return None
+
 
 # This code is part of a Flask application that provides functionality for searching players in fantasy football leagues.
 # It includes routes for searching by username, searching for specific players, and checking if players are not rostered in any leagues.
