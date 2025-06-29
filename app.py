@@ -33,20 +33,26 @@ logging.basicConfig(level=logging.DEBUG)
 
 @app.route('/search_username', methods=['POST'])
 def search_username():
-    username = request.form['username']
+    username = request.form['username'].strip()
+    if not username:
+        return "⚠️ No username entered."
+
     user_api_url = f"https://api.sleeper.app/v1/user/{username}"
     user_api_response = requests.get(user_api_url)
-
+    
     if user_api_response.status_code != 200:
-        logging.error(f"Error fetching user data: {user_api_response.status_code}")
-        return f"Error fetching user data: {user_api_response.status_code}"
+        return f"⚠️ Error fetching user data (status: {user_api_response.status_code})"
 
-    user_data = user_api_response.json()
-    user_id = user_data.get('user_id')
+    try:
+        user_data = user_api_response.json()
+    except Exception:
+        return f"⚠️ Invalid response received from Sleeper for '{username}'."
 
-    if not user_id:
-        return "User not found or invalid username."
+    if not isinstance(user_data, dict) or 'user_id' not in user_data:
+        return render_template('error.html', message=f"⚠️ Could not find user '{username}'. Please check spelling.")
 
+    user_id = user_data['user_id']
+    session['username'] = username
     # Save or update user in UserSearch
     user_search = UserSearch.query.filter_by(username=username).first()
     if user_search:
@@ -170,8 +176,8 @@ def search_username():
 
 @app.route('/search_player', methods=['POST'])
 def search_player():
-    username = request.form['username']
-    player_name = request.form['player_name']
+    username = session.get('username', '').strip()
+    player_name = request.form['player_name'].strip()
     user = UserSearch.query.filter_by(username=username).first()
     if not user:
         return "User not found"
@@ -214,13 +220,27 @@ def search_player():
 
 @app.route('/not_rostered_setup', methods=['POST'])
 def not_rostered_setup():
-    username = request.form['username']
-    session['username'] = username
+    username = request.form['username'].strip()
+    
+    if not username:
+        return "⚠️ No username entered."
 
-    user_resp = requests.get(f'https://api.sleeper.app/v1/user/{username}')
-    if user_resp.status_code != 200:
-        return f"Invalid Sleeper username: {username}", 400
-    user_id = user_resp.json().get('user_id')
+    user_api_url = f"https://api.sleeper.app/v1/user/{username}"
+    user_api_response = requests.get(user_api_url)
+
+    if user_api_response.status_code != 200:
+        return f"⚠️ Error fetching user data (status: {user_api_response.status_code})"
+
+    try:
+        user_data = user_api_response.json()
+    except Exception:
+        return f"⚠️ Invalid response received from Sleeper for '{username}'."
+
+    if not isinstance(user_data, dict) or 'user_id' not in user_data:
+        return render_template('error.html', message=f"⚠️ Could not find user '{username}'. Please check spelling.")
+
+    user_id = user_data['user_id']
+    session['username'] = username
     year = datetime.now().year
     
     leagues_resp = requests.get(f'https://api.sleeper.app/v1/user/{user_id}/leagues/nfl/{year}')
@@ -252,9 +272,10 @@ def not_rostered_setup():
 
 @app.route('/search_not_rostered', methods=['POST'])
 def search_not_rostered():
-    username = request.form['username']
-    player_name = request.form['player_name']
-    session['username'] = username  # persist for other pages
+    username = session.get('username', '').strip()
+    
+    player_name = request.form['player_name'].strip()
+
 
     # Use session-stored league IDs and names
     league_ids = session.get(f'{username}_nr_league_ids', [])
@@ -298,28 +319,45 @@ def search_not_rostered():
 
 @app.route('/username_compare', methods=['POST'])
 def username_compare():
-    username1 = request.form['username1']
-    username2 = request.form['username2']
+    username1 = request.form['username1'].strip()
+    username2 = request.form['username2'].strip()
+
+    if not username1 or not username2:
+        return render_template('error.html', message="⚠️ Please enter both usernames.")
+
+    if username1 == username2:
+        return render_template('error.html', message="⚠️ Please enter two different usernames to compare.")
+
     years = get_selected_years(request.form)
     if not years:
-        years = [datetime.now().year]  # Default to current year if none selected
-
+        years = [datetime.now().year]
 
     def fetch_league_names(username):
-        user_resp = requests.get(f'https://api.sleeper.app/v1/user/{username}')
-        if user_resp.status_code != 200:
-            return []
-        user_id = user_resp.json().get('user_id')
-        league_names = set()
-        for year in years:
-            resp = requests.get(f'https://api.sleeper.app/v1/user/{user_id}/leagues/nfl/{year}')
-            if resp.status_code == 200:
-                year_leagues = resp.json()
-                league_names.update(league['name'] for league in year_leagues)
-        return list(league_names)
+        try:
+            resp = requests.get(f'https://api.sleeper.app/v1/user/{username}')
+            if resp.status_code != 200:
+                raise ValueError(f"⚠️ Could not find user '{username}'.")
+            user_data = resp.json()
+            user_id = user_data.get('user_id')
+            if not user_id:
+                raise ValueError(f"⚠️ Invalid Sleeper response for '{username}'.")
 
-    leagues1 = fetch_league_names(username1)
-    leagues2 = fetch_league_names(username2)
+            league_names = set()
+            for year in years:
+                league_resp = requests.get(f'https://api.sleeper.app/v1/user/{user_id}/leagues/nfl/{year}')
+                if league_resp.status_code == 200:
+                    year_leagues = league_resp.json()
+                    league_names.update(league['name'] for league in year_leagues)
+            return list(league_names)
+        except Exception:
+            raise ValueError(f"⚠️ An error occurred while fetching leagues for '{username}'. Please check the username and try again.")
+
+    try:
+        leagues1 = fetch_league_names(username1)
+        leagues2 = fetch_league_names(username2)
+    except ValueError as e:
+        return render_template('error.html', message=str(e))
+
     shared = sorted(set(leagues1) & set(leagues2))
 
     return render_template(
@@ -331,57 +369,73 @@ def username_compare():
         shared_count=len(shared),
         shared_leagues=shared
     )
-
 @app.route('/league_compare', methods=['POST'])
 def league_compare():
     league_id = request.form['league_id'].strip()
-    user_resp = requests.get(f'https://api.sleeper.app/v1/league/{league_id}/users')
-    users = user_resp.json()
 
-    user_map = {}
-    league_to_users = {}
+    if not league_id:
+        return render_template('error.html', message="⚠️ Please enter a valid league ID.")
 
-    for user in users:
-        name = user['display_name']
-        user_id = user['user_id']
-        league_names = set()
+    try:
+        user_resp = requests.get(f'https://api.sleeper.app/v1/league/{league_id}/users')
+        if user_resp.status_code != 200:
+            raise ValueError("⚠️ Could not fetch users for that league ID.")
+
+        users = user_resp.json()
+        if not isinstance(users, list) or not users:
+            raise ValueError("⚠️ No users found for that league ID.")
+
+        user_map = {}
+        league_to_users = {}
         years = get_selected_years(request.form)
         if not years:
-            years = [datetime.now().year]  # Default to current year if none selected
-        for years in years:
-            resp = requests.get(f'https://api.sleeper.app/v1/user/{user_id}/leagues/nfl/{years}')
-            year_leagues = resp.json()
-            for league in year_leagues:
-                league_label = f"{league['name']} ({years})"
-                league_names.add(league_label)
-                league_to_users.setdefault(league_label, set()).add(name)
-        user_map[name] = league_names
+            years = [datetime.now().year]
 
-    duplicates = {}
-    user_league_counts = {name: set() for name in user_map}
+        for user in users:
+            name = user.get('display_name', 'Unknown')
+            user_id = user.get('user_id')
+            if not user_id:
+                continue
+            league_names = set()
+            for year in years:
+                resp = requests.get(f'https://api.sleeper.app/v1/user/{user_id}/leagues/nfl/{year}')
+                if resp.status_code != 200:
+                    continue
+                year_leagues = resp.json()
+                for league in year_leagues:
+                    label = f"{league['name']} ({year})"
+                    league_names.add(label)
+                    league_to_users.setdefault(label, set()).add(name)
+            user_map[name] = league_names
 
-    for league, shared_users in league_to_users.items():
-        if len(shared_users) > 1:
-            duplicates[league] = list(shared_users)
-            for name in shared_users:
-                user_league_counts[name].add(league)
+        duplicates = {}
+        user_league_counts = {name: set() for name in user_map}
 
-    summary = sorted(
-        [(name, len(leagues)) for name, leagues in user_league_counts.items()],
-        key=lambda x: x[1], reverse=True
-    )
+        for league, shared_users in league_to_users.items():
+            if len(shared_users) > 1:
+                duplicates[league] = list(shared_users)
+                for name in shared_users:
+                    user_league_counts[name].add(league)
 
-    return render_template(
-        'league_compare.html',
-        duplicates=duplicates,
-        summary=summary
-    )
+        summary = sorted(
+            [(name, len(leagues)) for name, leagues in user_league_counts.items()],
+            key=lambda x: x[1], reverse=True
+        )
+
+        return render_template(
+            'league_compare.html',
+            duplicates=duplicates,
+            summary=summary
+        )
+
+    except ValueError as e:
+        return render_template('error.html', message=str(e))
 
 
 
 
 
-@app.route('/league_compare', methods=['GET'])
+@app.route('/league_compare_page', methods=['GET'])
 def league_compare_page():
     return render_template('league_compare_id.html', current_year=datetime.now().year)
 
@@ -409,7 +463,7 @@ def get_selected_years(form):
     return [int(y) for y in selected_years if y.isdigit() and 2017 <= int(y) <= current_year]
 
 def get_player_info(player_id):
-    username = session.get('username')
+    username = session.get('username').strip()
     if not username:
         return None
 
