@@ -24,8 +24,8 @@ with app.app_context():
     db.create_all()
 
 @app.route('/')
-def index():
-    return render_template('index.html')
+def home():
+    return render_template('home.html')
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -211,5 +211,132 @@ def search_player():
 
 
 
+@app.route('/index', methods=['GET'])
+def index_page():
+    return render_template('index.html')
+
+@app.route('/not_rostered', methods=['GET'])
+def not_rostered():
+    return render_template('not_rostered_username.html')
+
+@app.route('/not_rostered_setup', methods=['POST'])
+def not_rostered_setup():
+    username = request.form['username']
+    session['username'] = username
+
+    user_resp = requests.get(f'https://api.sleeper.app/v1/user/{username}')
+    if user_resp.status_code != 200:
+        return f"Invalid Sleeper username: {username}", 400
+    user_id = user_resp.json().get('user_id')
+
+    leagues_resp = requests.get(f'https://api.sleeper.app/v1/user/{user_id}/leagues/nfl/2025')
+    leagues = [
+        {
+            'id': l['league_id'],
+            'name': l['name']
+        } for l in leagues_resp.json() if l.get("status") not in ("pre_draft", "drafting")
+    ]
+
+    session[f'{username}_nr_league_ids'] = [l['id'] for l in leagues]
+    session[f'{username}_nr_league_names'] = [l['name'] for l in leagues]
+
+    # Cache full player list only once per session
+    if not session.get('cached_all_players'):
+        try:
+            resp = requests.get("https://api.sleeper.app/v1/players/nfl")
+            if resp.status_code == 200:
+                session['cached_all_players'] = resp.json()
+            else:
+                session['cached_all_players'] = {}
+        except Exception as e:
+            print(f"Error fetching full player list: {e}")
+            session['cached_all_players'] = {}
+
+
+    return render_template('not_rostered.html', username=username)
+
+
+@app.route('/search_not_rostered', methods=['POST'])
+def search_not_rostered():
+    username = request.form['username']
+    player_name = request.form['player_name']
+    session['username'] = username  # persist for other pages
+
+    # Fetch user ID
+    user_resp = requests.get(f'https://api.sleeper.app/v1/user/{username}')
+    if user_resp.status_code != 200:
+        return f"Invalid Sleeper username: {username}", 400
+    user_id = user_resp.json().get('user_id')
+
+    # Use session-stored league IDs and names
+    league_ids = session.get(f'{username}_nr_league_ids', [])
+    league_names = session.get(f'{username}_nr_league_names', [])
+    leagues = [{'id': lid, 'name': lname} for lid, lname in zip(league_ids, league_names)]
+
+
+    not_rostered_results = []
+
+    for league in leagues:
+        league_id = league["id"]
+        league_name = league["name"]
+
+        rosters_resp = requests.get(f'https://api.sleeper.app/v1/league/{league_id}/rosters')
+        rosters = rosters_resp.json()
+        found = False
+
+        for roster in rosters:
+            player_ids = roster.get("players", [])
+            if not player_ids:
+                continue
+            for pid in player_ids:
+                player_data = get_player_info(pid)
+                if player_data and player_data.get('full_name', '').lower() == player_name.lower():
+                    found = True
+                    break
+            if found:
+                break
+
+        if not found:
+            not_rostered_results.append(league_name)
+
+    return render_template(
+        'not_rostered.html',
+        username=username,
+        player_name=player_name,
+        not_rostered_results=not_rostered_results,
+        total_league_count=len(leagues)
+    )
+
+
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+
+def get_player_info(player_id):
+    username = session.get('username')
+    if not username:
+        return None
+
+    # First check cached players (from stock search)
+    cached_players = session.get(f'{username}_cached_players', [])
+    for player in cached_players:
+        if player.get('id') == player_id or player.get('name') == player_id:
+            return {
+                'full_name': player['name'],
+                'position': player['position']
+            }
+
+    # Fallback: use full player cache
+    all_players = session.get('cached_all_players', {})
+    player_data = all_players.get(player_id)
+    if player_data:
+        return {
+            'full_name': player_data.get('full_name') or player_data.get('name', 'Unknown Player'),
+            'position': player_data.get('position', 'Unknown')
+        }
+
+    return None
+
+# This code is part of a Flask application that provides functionality for searching players in fantasy football leagues.
+# It includes routes for searching by username, searching for specific players, and checking if players are not rostered in any leagues.

@@ -66,19 +66,8 @@ ul {
     margin: 0;
 }
 
-li.league-item {
-    background-color: #3a3f44;
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.league-name {
-    font-weight: bold;
-}
-
+li.league-item,
+li.link-item,
 li.player-item {
     background-color: #3a3f44;
     border-radius: 8px;
@@ -88,9 +77,15 @@ li.player-item {
     justify-content: space-between;
     align-items: center;
 }
-
-.player-name {
+.league-name,
+li.link-item,
+li.player-item {
     font-weight: bold;
+}
+
+li.link-item {
+    justify-content: center
+    ;
 }
 
 .player-percentage {
@@ -155,7 +150,8 @@ a:hover {
     }
 
     li.player-item,
-    li.league-item {
+    li.league-item,
+    li.link-item {
         font-size: 0.6rem;
         padding: 6px 10px;
         display: flex;
@@ -166,7 +162,8 @@ a:hover {
     }
 
     .player-name,
-    .league-name {
+    .league-name,
+    li.link-item {
         font-size: 0.65rem;
         font-weight: bold;
         white-space: nowrap;
