@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
+  <div class="creator-label">Created by: StickyPicky</div>
   <h1 class="center-title">Players Not Rostered</h1>
   <a href="{{ url_for('home') }}">Back to Home</a>
   <form action="{{ url_for('not_rostered_setup') }}" method="post">
