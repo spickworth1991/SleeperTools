@@ -5,6 +5,8 @@ from models import db, SleeperPlayer, UserSearch, PlayerLeagueAssociation
 import requests
 import logging
 from config import Config
+from datetime import datetime
+
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -54,7 +56,8 @@ def search_username():
         db.session.add(user_search)
     db.session.commit()
 
-    year = 2025
+    year = datetime.now().year
+
     leagues_api_url = f"https://api.sleeper.app/v1/user/{user_id}/leagues/nfl/{year}"
     leagues_api_response = requests.get(leagues_api_url)
 
@@ -228,8 +231,9 @@ def not_rostered_setup():
     if user_resp.status_code != 200:
         return f"Invalid Sleeper username: {username}", 400
     user_id = user_resp.json().get('user_id')
-
-    leagues_resp = requests.get(f'https://api.sleeper.app/v1/user/{user_id}/leagues/nfl/2025')
+    year = datetime.now().year
+    
+    leagues_resp = requests.get(f'https://api.sleeper.app/v1/user/{user_id}/leagues/nfl/{year}')
     leagues = [
         {
             'id': l['league_id'],

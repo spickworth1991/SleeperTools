@@ -14,9 +14,14 @@
     <div class="players">
       <h2>Choose a Tool</h2>
       <ul>
-        <li class="link-item"><a href="{{ url_for('index_page') }}">Player Stock</a></li>
-        <li class="link-item"><a href="{{ url_for('not_rostered') }}">Not Rostered</a></li>
+        <li class="link-item">
+          <a href="{{ url_for('index_page') }}" class="tool-link">Player Stock</a>
+        </li>
+        <li class="link-item">
+          <a href="{{ url_for('not_rostered') }}" class="tool-link">Not Rostered</a>
+        </li>
       </ul>
+
     </div>
   </div>
 </body>

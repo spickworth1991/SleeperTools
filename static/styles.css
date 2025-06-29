@@ -143,6 +143,28 @@ a:hover {
     text-decoration: underline;
 }
 
+.centered-form-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 20px;
+}
+
+.centered-form-wrapper .search-form {
+    max-width: 400px;
+    width: 100%;
+}
+
+/* 🛠 Fix link-item full-clickable on home.html */
+.link-item a.tool-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    color: inherit;
+}
+
 /* 🌐 Mobile Optimization */
 @media (max-width: 768px) {
     .container {
@@ -150,6 +172,17 @@ a:hover {
         flex-wrap: wrap;
         justify-content: center;
         gap: 5px;
+    }
+
+    .centered-form-wrapper {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .centered-form-wrapper .search-form {
+        width: 90%;
+        max-width: 300px;
     }
 
     .players,
