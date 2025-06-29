@@ -9,8 +9,6 @@
 <body>
   <div class="creator-label">Created by: StickyPicky</div>
   <h1 class="center-title">Search Players Not Rostered for {{ username }} Leagues</h1>
-  <a href="{{ url_for('home') }}">Back to Home</a>
-
   <div class="container">
     <div class="search-form">
       <h2>Search for a Player</h2>
@@ -35,5 +33,7 @@
       {% endif %}
     </div>
   </div>
+  <a href="{{ url_for('home') }}">Back to Home</a>
+  <a href="{{ url_for('not_rostered') }}">Back to Not Rostered Username search</a>
 </body>
 </html>

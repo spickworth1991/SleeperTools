@@ -165,6 +165,18 @@ a:hover {
     color: inherit;
 }
 
+.year-selector label {
+  margin-right: 10px;
+  text-decoration: none;
+  color: inherit; /* Prevents weird autofill color */
+}
+
+input:-webkit-autofill {
+  box-shadow: 0 0 0px 1000px #2b2f33 inset !important;
+  -webkit-text-fill-color: #e3e3e3 !important;
+}
+
+
 /* 🌐 Mobile Optimization */
 @media (max-width: 768px) {
     .container {

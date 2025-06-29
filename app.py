@@ -212,16 +212,6 @@ def search_player():
         filter_label=filter_label
     )
 
-
-
-@app.route('/index', methods=['GET'])
-def index_page():
-    return render_template('index.html')
-
-@app.route('/not_rostered', methods=['GET'])
-def not_rostered():
-    return render_template('not_rostered_username.html')
-
 @app.route('/not_rostered_setup', methods=['POST'])
 def not_rostered_setup():
     username = request.form['username']
@@ -306,10 +296,117 @@ def search_not_rostered():
     )
 
 
+@app.route('/username_compare', methods=['POST'])
+def username_compare():
+    username1 = request.form['username1']
+    username2 = request.form['username2']
+    years = get_selected_years(request.form)
+    if not years:
+        years = [datetime.now().year]  # Default to current year if none selected
+
+
+    def fetch_league_names(username):
+        user_resp = requests.get(f'https://api.sleeper.app/v1/user/{username}')
+        if user_resp.status_code != 200:
+            return []
+        user_id = user_resp.json().get('user_id')
+        league_names = set()
+        for year in years:
+            resp = requests.get(f'https://api.sleeper.app/v1/user/{user_id}/leagues/nfl/{year}')
+            if resp.status_code == 200:
+                year_leagues = resp.json()
+                league_names.update(league['name'] for league in year_leagues)
+        return list(league_names)
+
+    leagues1 = fetch_league_names(username1)
+    leagues2 = fetch_league_names(username2)
+    shared = sorted(set(leagues1) & set(leagues2))
+
+    return render_template(
+        'username_compare.html',
+        username1=username1,
+        username2=username2,
+        total1=len(leagues1),
+        total2=len(leagues2),
+        shared_count=len(shared),
+        shared_leagues=shared
+    )
+
+@app.route('/league_compare', methods=['POST'])
+def league_compare():
+    league_id = request.form['league_id'].strip()
+    user_resp = requests.get(f'https://api.sleeper.app/v1/league/{league_id}/users')
+    users = user_resp.json()
+
+    user_map = {}
+    league_to_users = {}
+
+    for user in users:
+        name = user['display_name']
+        user_id = user['user_id']
+        league_names = set()
+        years = get_selected_years(request.form)
+        if not years:
+            years = [datetime.now().year]  # Default to current year if none selected
+        for years in years:
+            resp = requests.get(f'https://api.sleeper.app/v1/user/{user_id}/leagues/nfl/{years}')
+            year_leagues = resp.json()
+            for league in year_leagues:
+                league_label = f"{league['name']} ({years})"
+                league_names.add(league_label)
+                league_to_users.setdefault(league_label, set()).add(name)
+        user_map[name] = league_names
+
+    duplicates = {}
+    user_league_counts = {name: set() for name in user_map}
+
+    for league, shared_users in league_to_users.items():
+        if len(shared_users) > 1:
+            duplicates[league] = list(shared_users)
+            for name in shared_users:
+                user_league_counts[name].add(league)
+
+    summary = sorted(
+        [(name, len(leagues)) for name, leagues in user_league_counts.items()],
+        key=lambda x: x[1], reverse=True
+    )
+
+    return render_template(
+        'league_compare.html',
+        duplicates=duplicates,
+        summary=summary
+    )
+
+
+
+
+
+@app.route('/league_compare', methods=['GET'])
+def league_compare_page():
+    return render_template('league_compare_id.html', current_year=datetime.now().year)
+
+
+@app.route('/username_compare', methods=['GET'])
+def username_compare_page():
+    return render_template('username_compare_username.html', current_year=datetime.now().year)
+
+
+@app.route('/index', methods=['GET'])
+def index_page():
+    return render_template('index.html')
+
+@app.route('/not_rostered', methods=['GET'])
+def not_rostered():
+    return render_template('not_rostered_username.html')
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
 
-
+def get_selected_years(form):
+    current_year = datetime.now().year
+    selected_years = form.getlist('years')  # From the form checkboxes
+    return [int(y) for y in selected_years if y.isdigit() and 2017 <= int(y) <= current_year]
 
 def get_player_info(player_id):
     username = session.get('username')
@@ -339,3 +436,6 @@ def get_player_info(player_id):
 
 # This code is part of a Flask application that provides functionality for searching players in fantasy football leagues.
 # It includes routes for searching by username, searching for specific players, and checking if players are not rostered in any leagues.
+# The application uses the Sleeper API to fetch user and league data, and it stores user sessions using Flask-Session.
+# The application also includes features for comparing leagues and usernames, and it provides a web interface for users to interact with the data.
+# The code is structured to handle various scenarios, such as filtering leagues by best ball status and managing user sessions effectively. 

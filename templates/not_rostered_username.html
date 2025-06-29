@@ -9,8 +9,6 @@
 <body>
   <div class="creator-label">Created by: StickyPicky</div>
   <h1 class="center-title">Players Not Rostered</h1>
-  <a href="{{ url_for('home') }}">Back to Home</a>
-
   <div class="container centered-form-wrapper">
     <form action="{{ url_for('not_rostered_setup') }}" method="post" class="search-form">
       <label for="username">Enter Sleeper Username:</label>
@@ -18,5 +16,6 @@
       <button type="submit">Continue</button>
     </form>
   </div>
+  <a href="{{ url_for('home') }}">Back to Home</a>
 </body>
 </html>

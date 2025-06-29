@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>League Comparison</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="creator-label">Created by: StickyPicky</div>
+  <h1 class="center-title">Users with Shared Leagues</h1>
+  <div class="container">
+    {% if summary %}
+        <div class="players">
+            <h2>Top Users by Shared Leagues</h2>
+            <ul>
+            {% for name, count in summary %}
+                <li class="player-item">
+                <span class="player-name">{{ name }}</span>
+                <span class="player-percentage">{{ count }} shared leagues</span>
+                </li>
+            {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    {% if duplicates %}
+      {% for league_name, users in duplicates.items() %}
+        <div class="players">
+          <h3>{{ league_name }}</h3>
+          <ul>
+            {% for user in users %}
+              <li class="league-item"><span class="league-name">{{ user }}</span></li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>No shared leagues found between users in this league.</p>
+    {% endif %}
+  </div>
+  <a href="{{ url_for('home') }}">Back to Home</a>
+  <a href="{{ url_for('league_compare_page') }}">Back to League ID</a>
+</body>
+</html>
