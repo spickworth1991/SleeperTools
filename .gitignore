@@ -32,7 +32,6 @@ sleepercsv.py
 populate_db.py
 inspect_db.py
 auto.js
-sleeper_players.csv
 sleeper_players_backup.csv
 app.db
 
