@@ -45,7 +45,8 @@ h1, h2, h3, label {
     margin-top: 20px;
 }
 
-.container {
+.container,
+.search-form {
     display: flex;
     justify-content: space-between;
     width: 100%;
@@ -131,7 +132,8 @@ a:hover {
 
 /* 🌐 Mobile Optimization */
 @media (max-width: 768px) {
-    .container {
+    .container,
+    .search-form {
         flex-direction: row;
         flex-wrap: wrap;
         justify-content: center;
@@ -161,9 +163,12 @@ a:hover {
         line-height: 1.2; /* ✅ match line height */
     }
 
-    .player-name,
-    .league-name,
     li.link-item {
+        justify-content: center;
+    }
+
+    .player-name,
+    .league-name  {
         font-size: 0.65rem;
         font-weight: bold;
         white-space: nowrap;
