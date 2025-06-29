@@ -26,3 +26,10 @@ flask_session/
 # OS-specific files
 .DS_Store
 Thumbs.db
+
+# Temporary files
+sleepercsv.py
+populate_db.py
+inspect_db.py
+auto.js
+
