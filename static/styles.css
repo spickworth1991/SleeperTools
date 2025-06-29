@@ -163,6 +163,8 @@ a:hover {
     height: 100%;
     text-align: center;
     color: inherit;
+    align-items: center;
+    height:40px
 }
 
 .year-selector label {
