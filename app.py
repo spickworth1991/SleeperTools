@@ -10,6 +10,8 @@ from datetime import datetime
 app = Flask(__name__)
 app.config.from_object(Config)
 app.config.update(SESSION_COOKIE_SAMESITE='None', SESSION_COOKIE_SECURE=True)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)
+app.config['SESSION_PERMANENT'] = False
 app.secret_key = 'your_secret_key'
 
 # 🔐 Use server-side session storage
