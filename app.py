@@ -9,10 +9,7 @@ from datetime import datetime
 
 app = Flask(__name__)
 app.config.from_object(Config)
-app.config.update(
-    SESSION_COOKIE_SAMESITE='None',
-    SESSION_COOKIE_SECURE=True
-)
+app.config.update(SESSION_COOKIE_SAMESITE='None', SESSION_COOKIE_SECURE=True)
 app.secret_key = 'your_secret_key'
 
 # 🔐 Use server-side session storage
@@ -306,8 +303,7 @@ def not_rostered_setup():
     leagues = [{
         'id': l['league_id'],
         'name': l['name']
-    # } for l in leagues_resp.json()
-    #            if l.get("status") not in ("pre_draft", "drafting")]
+    } for l in leagues_resp.json() if l.get("status") not in ("none")]
 
     session[f'{username}_nr_league_ids'] = [l['id'] for l in leagues]
     session[f'{username}_nr_league_names'] = [l['name'] for l in leagues]
