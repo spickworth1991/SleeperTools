@@ -306,8 +306,8 @@ def not_rostered_setup():
     leagues = [{
         'id': l['league_id'],
         'name': l['name']
-    } for l in leagues_resp.json()
-               if l.get("status") not in ("pre_draft", "drafting")]
+    # } for l in leagues_resp.json()
+    #            if l.get("status") not in ("pre_draft", "drafting")]
 
     session[f'{username}_nr_league_ids'] = [l['id'] for l in leagues]
     session[f'{username}_nr_league_names'] = [l['name'] for l in leagues]
