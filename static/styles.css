@@ -10,20 +10,23 @@ body {
 }
 
 .creator-label {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  background-color: #f1f1f1;
-  padding: 5px 10px;
-  border-radius: 8px;
-  font-size: 0.7rem;
-  color: #333;
-  box-shadow: 0 0 5px rgba(0,0,0,0.2);
-  z-index: 999;
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background-color: #f1f1f1;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    color: #000000;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    z-index: 999;
 }
 
 
-h1, h2, h3, label {
+h1,
+h2,
+h3,
+label {
     color: #fff;
     text-align: center;
 }
@@ -91,6 +94,7 @@ li.player-item {
     justify-content: space-between;
     align-items: center;
 }
+
 .league-name,
 li.link-item,
 li.player-item {
@@ -98,8 +102,7 @@ li.player-item {
 }
 
 li.link-item {
-    justify-content: center
-    ;
+    justify-content: center;
 }
 
 .player-percentage {
@@ -164,18 +167,19 @@ a:hover {
     text-align: center;
     color: inherit;
     align-items: center;
-    height:40px
+    height: 40px
 }
 
 .year-selector label {
-  margin-right: 10px;
-  text-decoration: none;
-  color: inherit; /* Prevents weird autofill color */
+    margin-right: 10px;
+    text-decoration: none;
+    color: inherit;
+    /* Prevents weird autofill color */
 }
 
 input:-webkit-autofill {
-  box-shadow: 0 0 0px 1000px #2b2f33 inset !important;
-  -webkit-text-fill-color: #e3e3e3 !important;
+    box-shadow: 0 0 0px 1000px #2b2f33 inset !important;
+    -webkit-text-fill-color: #e3e3e3 !important;
 }
 
 .error-container {
@@ -223,7 +227,10 @@ input:-webkit-autofill {
         min-width: 150px;
     }
 
-    h2, label, select, button {
+    h2,
+    label,
+    select,
+    button {
         font-size: 0.75rem;
     }
 
@@ -236,7 +243,8 @@ input:-webkit-autofill {
         justify-content: space-between;
         align-items: center;
         border-radius: 6px;
-        line-height: 1.2; /* ✅ match line height */
+        line-height: 1.2;
+        /* ✅ match line height */
     }
 
     li.link-item {
@@ -244,7 +252,7 @@ input:-webkit-autofill {
     }
 
     .player-name,
-    .league-name  {
+    .league-name {
         font-size: 0.65rem;
         font-weight: bold;
         white-space: nowrap;
@@ -266,16 +274,16 @@ input:-webkit-autofill {
     }
 
     .creator-label {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    background-color: #f1f1f1;
-    padding: 3px 3px;
-    border-radius: 8px;
-    font-size: 0.35rem;
-    color: #333;
-    box-shadow: 0 0 5px rgba(0,0,0,0.2);
-    z-index: 999;
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background-color: #f1f1f1;
+        padding: 3px 3px;
+        border-radius: 8px;
+        font-size: 0.35rem;
+        color: #000000;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        z-index: 999;
     }
 }
 
@@ -283,11 +291,12 @@ input:-webkit-autofill {
 /* 🌙 Dark Mode */
 @media (prefers-color-scheme: dark) {
     body {
-        background-color: #1e2124;
+        background-color: #000000;
         color: #dcdcdc;
     }
 
-    li.player-item, li.league-item {
+    li.player-item,
+    li.league-item {
         background-color: #2c2f33;
     }
 
