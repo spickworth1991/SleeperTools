@@ -1,0 +1,32 @@
+modules = ["python-3.12", "web"]
+run = "Run app.py"
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["sh", "-c", "Run app.py"]
+
+[workflows]
+runButton = "Run App"
+
+[[workflows.workflow]]
+name = "Run App"
+mode = "sequential"
+author = 44725056
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pip install flask"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pip install requests"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python app.py"
+
+[[ports]]
+localPort = 5000
+externalPort = 80

@@ -7,29 +7,31 @@ import logging
 from config import Config
 from datetime import datetime
 
-
 app = Flask(__name__)
 app.config.from_object(Config)
 app.secret_key = 'your_secret_key'
 
 # 🔐 Use server-side session storage
 app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_FILE_DIR'] = os.path.join(app.root_path, 'flask_session')  # Optional but good
+app.config['SESSION_FILE_DIR'] = os.path.join(
+    app.root_path, 'flask_session')  # Optional but good
 app.config['SESSION_PERMANENT'] = False  # or True if you want long sessions
 app.config['SESSION_COOKIE_NAME'] = 'session'
 Session(app)
-
 
 db.init_app(app)
 
 with app.app_context():
     db.create_all()
 
+
 @app.route('/')
 def home():
     return render_template('home.html')
 
+
 logging.basicConfig(level=logging.DEBUG)
+
 
 @app.route('/search_username', methods=['POST'])
 def search_username():
@@ -39,7 +41,7 @@ def search_username():
 
     user_api_url = f"https://api.sleeper.app/v1/user/{username}"
     user_api_response = requests.get(user_api_url)
-    
+
     if user_api_response.status_code != 200:
         return f"⚠️ Error fetching user data (status: {user_api_response.status_code})"
 
@@ -49,7 +51,10 @@ def search_username():
         return f"⚠️ Invalid response received from Sleeper for '{username}'."
 
     if not isinstance(user_data, dict) or 'user_id' not in user_data:
-        return render_template('error.html', message=f"⚠️ Could not find user '{username}'. Please check spelling.")
+        return render_template(
+            'error.html',
+            message=
+            f"⚠️ Could not find user '{username}'. Please check spelling.")
 
     user_id = user_data['user_id']
     session['username'] = username
@@ -68,7 +73,8 @@ def search_username():
     leagues_api_response = requests.get(leagues_api_url)
 
     if leagues_api_response.status_code != 200:
-        logging.error(f"Error fetching leagues data: {leagues_api_response.status_code}")
+        logging.error(
+            f"Error fetching leagues data: {leagues_api_response.status_code}")
         return f"Error fetching leagues data: {leagues_api_response.status_code}"
 
     year_leagues = leagues_api_response.json()
@@ -91,9 +97,16 @@ def search_username():
         if exclude_bestball and is_best_ball:
             continue
 
-        leagues_data.append({'name': league['name'], 'id': league['league_id']})
-    session[f'{username}_league_ids'] = [league['id'] for league in leagues_data]
-    session[f'{username}_league_names'] = [league['name'] for league in leagues_data]
+        leagues_data.append({
+            'name': league['name'],
+            'id': league['league_id']
+        })
+    session[f'{username}_league_ids'] = [
+        league['id'] for league in leagues_data
+    ]
+    session[f'{username}_league_names'] = [
+        league['name'] for league in leagues_data
+    ]
 
     # Clear previous league associations for the user
     PlayerLeagueAssociation.query.filter_by(user_id=user_id).delete()
@@ -106,18 +119,27 @@ def search_username():
         league_api_response = requests.get(league_api_url)
 
         if league_api_response.status_code != 200:
-            logging.warning(f"Error fetching roster data for league {league['id']}: {league_api_response.status_code}")
+            logging.warning(
+                f"Error fetching roster data for league {league['id']}: {league_api_response.status_code}"
+            )
             continue
 
         roster_data = league_api_response.json()
-        user_roster = next((roster for roster in roster_data if roster['owner_id'] == user_id), None)
+        user_roster = next(
+            (roster
+             for roster in roster_data if roster['owner_id'] == user_id), None)
 
         if user_roster and user_roster.get('players'):
             for player_id in user_roster['players']:
                 player_ids.append(player_id)
-                associations.append(PlayerLeagueAssociation(user_id=user_id, league_id=league['id'], player_id=player_id))
+                associations.append(
+                    PlayerLeagueAssociation(user_id=user_id,
+                                            league_id=league['id'],
+                                            player_id=player_id))
         else:
-            logging.warning(f"No valid roster data found for user_id {user_id} in league {league['id']}")
+            logging.warning(
+                f"No valid roster data found for user_id {user_id} in league {league['id']}"
+            )
 
     db.session.bulk_save_objects(associations)
     db.session.commit()
@@ -126,33 +148,47 @@ def search_username():
     #print("🧠 First 5 player IDs in DB:", [p.id for p in SleeperPlayer.query.limit(5)])
 
     player_map = {
-        player.id: {'name': player.name, 'position': player.position}
+        player.id: {
+            'name': player.name,
+            'position': player.position
+        }
         for player in SleeperPlayer.query.all()
     }
 
-    player_leagues_count = {player_id: player_ids.count(player_id) for player_id in set(player_ids)}
+    player_leagues_count = {
+        player_id: player_ids.count(player_id)
+        for player_id in set(player_ids)
+    }
     # Map each player to the leagues they're in
     player_league_names = {}
-    league_id_to_name = {league['id']: league['name'] for league in leagues_data}
+    league_id_to_name = {
+        league['id']: league['name']
+        for league in leagues_data
+    }
 
     for assoc in associations:
         name = league_id_to_name.get(assoc.league_id, 'Unknown League')
         player_league_names.setdefault(assoc.player_id, []).append(name)
 
-    sorted_player_ids = sorted(player_leagues_count, key=player_leagues_count.get, reverse=True)
+    sorted_player_ids = sorted(player_leagues_count,
+                               key=player_leagues_count.get,
+                               reverse=True)
 
     players = []
     for player_id in sorted_player_ids:
         #print(f"🔎 Looking for player_id: {player_id}")
-        player_info = player_map.get(str(player_id), {'name': 'Unknown Player', 'position': 'Unknown Position'})
+        player_info = player_map.get(str(player_id), {
+            'name': 'Unknown Player',
+            'position': 'Unknown Position'
+        })
         league_count = player_leagues_count[player_id]
         percentage = (league_count / len(leagues_data)) * 100
         players.append({
-        'name': player_info['name'],
-        'position': player_info['position'],
-        'percentage': f"{percentage:.2f}%",
-        'leagues': player_league_names.get(player_id, [])
-    })
+            'name': player_info['name'],
+            'position': player_info['position'],
+            'percentage': f"{percentage:.2f}%",
+            'leagues': player_league_names.get(player_id, [])
+        })
 
     filter_label = "All Leagues"
     if only_bestball:
@@ -165,13 +201,12 @@ def search_username():
     session[f'{username}_filter_label'] = filter_label
 
     return render_template(
-    'result.html',
-    username=username,
-    players=players,
-    all_leagues=[league['name'] for league in leagues_data],
-    searched_player=None,
-    filter_label=filter_label
-)
+        'result.html',
+        username=username,
+        players=players,
+        all_leagues=[league['name'] for league in leagues_data],
+        searched_player=None,
+        filter_label=filter_label)
 
 
 @app.route('/search_player', methods=['POST'])
@@ -192,11 +227,16 @@ def search_player():
     searched_player = None
     league_map = {id: name for id, name in zip(filtered_ids, filtered_names)}
 
-    searched_player_obj = SleeperPlayer.query.filter(SleeperPlayer.name.ilike(player_name)).first()
+    searched_player_obj = SleeperPlayer.query.filter(
+        SleeperPlayer.name.ilike(player_name)).first()
     if searched_player_obj:
         player_id = searched_player_obj.id
-        associations = PlayerLeagueAssociation.query.filter_by(user_id=user_id, player_id=player_id).all()
-        leagues = [league_map.get(assoc.league_id, 'Unknown League') for assoc in associations]
+        associations = PlayerLeagueAssociation.query.filter_by(
+            user_id=user_id, player_id=player_id).all()
+        leagues = [
+            league_map.get(assoc.league_id, 'Unknown League')
+            for assoc in associations
+        ]
         searched_player = {
             'name': searched_player_obj.name,
             'position': searched_player_obj.position
@@ -215,13 +255,13 @@ def search_player():
         searched_player=searched_player,
         leagues=leagues,
         all_leagues=[name for name in filtered_names],
-        filter_label=filter_label
-    )
+        filter_label=filter_label)
+
 
 @app.route('/not_rostered_setup', methods=['POST'])
 def not_rostered_setup():
     username = request.form['username'].strip()
-    
+
     if not username:
         return "⚠️ No username entered."
 
@@ -237,19 +277,22 @@ def not_rostered_setup():
         return f"⚠️ Invalid response received from Sleeper for '{username}'."
 
     if not isinstance(user_data, dict) or 'user_id' not in user_data:
-        return render_template('error.html', message=f"⚠️ Could not find user '{username}'. Please check spelling.")
+        return render_template(
+            'error.html',
+            message=
+            f"⚠️ Could not find user '{username}'. Please check spelling.")
 
     user_id = user_data['user_id']
     session['username'] = username
     year = datetime.now().year
-    
-    leagues_resp = requests.get(f'https://api.sleeper.app/v1/user/{user_id}/leagues/nfl/{year}')
-    leagues = [
-        {
-            'id': l['league_id'],
-            'name': l['name']
-        } for l in leagues_resp.json() if l.get("status") not in ("pre_draft", "drafting")
-    ]
+
+    leagues_resp = requests.get(
+        f'https://api.sleeper.app/v1/user/{user_id}/leagues/nfl/{year}')
+    leagues = [{
+        'id': l['league_id'],
+        'name': l['name']
+    } for l in leagues_resp.json()
+               if l.get("status") not in ("pre_draft", "drafting")]
 
     session[f'{username}_nr_league_ids'] = [l['id'] for l in leagues]
     session[f'{username}_nr_league_names'] = [l['name'] for l in leagues]
@@ -266,22 +309,22 @@ def not_rostered_setup():
             print(f"Error fetching full player list: {e}")
             session['cached_all_players'] = {}
 
-
     return render_template('not_rostered.html', username=username)
 
 
 @app.route('/search_not_rostered', methods=['POST'])
 def search_not_rostered():
     username = session.get('username', '').strip()
-    
-    player_name = request.form['player_name'].strip()
 
+    player_name = request.form['player_name'].strip()
 
     # Use session-stored league IDs and names
     league_ids = session.get(f'{username}_nr_league_ids', [])
     league_names = session.get(f'{username}_nr_league_names', [])
-    leagues = [{'id': lid, 'name': lname} for lid, lname in zip(league_ids, league_names)]
-
+    leagues = [{
+        'id': lid,
+        'name': lname
+    } for lid, lname in zip(league_ids, league_names)]
 
     not_rostered_results = []
 
@@ -289,7 +332,8 @@ def search_not_rostered():
         league_id = league["id"]
         league_name = league["name"]
 
-        rosters_resp = requests.get(f'https://api.sleeper.app/v1/league/{league_id}/rosters')
+        rosters_resp = requests.get(
+            f'https://api.sleeper.app/v1/league/{league_id}/rosters')
         rosters = rosters_resp.json()
         found = False
 
@@ -299,7 +343,8 @@ def search_not_rostered():
                 continue
             for pid in player_ids:
                 player_data = get_player_info(pid)
-                if player_data and player_data.get('full_name', '').lower() == player_name.lower():
+                if player_data and player_data.get(
+                        'full_name', '').lower() == player_name.lower():
                     found = True
                     break
             if found:
@@ -308,13 +353,11 @@ def search_not_rostered():
         if not found:
             not_rostered_results.append(league_name)
 
-    return render_template(
-        'not_rostered.html',
-        username=username,
-        player_name=player_name,
-        not_rostered_results=not_rostered_results,
-        total_league_count=len(leagues)
-    )
+    return render_template('not_rostered.html',
+                           username=username,
+                           player_name=player_name,
+                           not_rostered_results=not_rostered_results,
+                           total_league_count=len(leagues))
 
 
 @app.route('/username_compare', methods=['POST'])
@@ -323,10 +366,13 @@ def username_compare():
     username2 = request.form['username2'].strip()
 
     if not username1 or not username2:
-        return render_template('error.html', message="⚠️ Please enter both usernames.")
+        return render_template('error.html',
+                               message="⚠️ Please enter both usernames.")
 
     if username1 == username2:
-        return render_template('error.html', message="⚠️ Please enter two different usernames to compare.")
+        return render_template(
+            'error.html',
+            message="⚠️ Please enter two different usernames to compare.")
 
     years = get_selected_years(request.form)
     if not years:
@@ -340,17 +386,23 @@ def username_compare():
             user_data = resp.json()
             user_id = user_data.get('user_id')
             if not user_id:
-                raise ValueError(f"⚠️ Invalid Sleeper response for '{username}'.")
+                raise ValueError(
+                    f"⚠️ Invalid Sleeper response for '{username}'.")
 
             league_names = set()
             for year in years:
-                league_resp = requests.get(f'https://api.sleeper.app/v1/user/{user_id}/leagues/nfl/{year}')
+                league_resp = requests.get(
+                    f'https://api.sleeper.app/v1/user/{user_id}/leagues/nfl/{year}'
+                )
                 if league_resp.status_code == 200:
                     year_leagues = league_resp.json()
-                    league_names.update(league['name'] for league in year_leagues)
+                    league_names.update(league['name']
+                                        for league in year_leagues)
             return list(league_names)
         except Exception:
-            raise ValueError(f"⚠️ An error occurred while fetching leagues for '{username}'. Please check the username and try again.")
+            raise ValueError(
+                f"⚠️ An error occurred while fetching leagues for '{username}'. Please check the username and try again."
+            )
 
     try:
         leagues1 = fetch_league_names(username1)
@@ -360,24 +412,26 @@ def username_compare():
 
     shared = sorted(set(leagues1) & set(leagues2))
 
-    return render_template(
-        'username_compare.html',
-        username1=username1,
-        username2=username2,
-        total1=len(leagues1),
-        total2=len(leagues2),
-        shared_count=len(shared),
-        shared_leagues=shared
-    )
+    return render_template('username_compare.html',
+                           username1=username1,
+                           username2=username2,
+                           total1=len(leagues1),
+                           total2=len(leagues2),
+                           shared_count=len(shared),
+                           shared_leagues=shared)
+
+
 @app.route('/league_compare', methods=['POST'])
 def league_compare():
     league_id = request.form['league_id'].strip()
 
     if not league_id:
-        return render_template('error.html', message="⚠️ Please enter a valid league ID.")
+        return render_template('error.html',
+                               message="⚠️ Please enter a valid league ID.")
 
     try:
-        user_resp = requests.get(f'https://api.sleeper.app/v1/league/{league_id}/users')
+        user_resp = requests.get(
+            f'https://api.sleeper.app/v1/league/{league_id}/users')
         if user_resp.status_code != 200:
             raise ValueError("⚠️ Could not fetch users for that league ID.")
 
@@ -398,7 +452,9 @@ def league_compare():
                 continue
             league_names = set()
             for year in years:
-                resp = requests.get(f'https://api.sleeper.app/v1/user/{user_id}/leagues/nfl/{year}')
+                resp = requests.get(
+                    f'https://api.sleeper.app/v1/user/{user_id}/leagues/nfl/{year}'
+                )
                 if resp.status_code != 200:
                     continue
                 year_leagues = resp.json()
@@ -417,50 +473,49 @@ def league_compare():
                 for name in shared_users:
                     user_league_counts[name].add(league)
 
-        summary = sorted(
-            [(name, len(leagues)) for name, leagues in user_league_counts.items()],
-            key=lambda x: x[1], reverse=True
-        )
+        summary = sorted([(name, len(leagues))
+                          for name, leagues in user_league_counts.items()],
+                         key=lambda x: x[1],
+                         reverse=True)
 
-        return render_template(
-            'league_compare.html',
-            duplicates=duplicates,
-            summary=summary
-        )
+        return render_template('league_compare.html',
+                               duplicates=duplicates,
+                               summary=summary)
 
     except ValueError as e:
         return render_template('error.html', message=str(e))
 
 
-
-
-
 @app.route('/league_compare_page', methods=['GET'])
 def league_compare_page():
-    return render_template('league_compare_id.html', current_year=datetime.now().year)
+    return render_template('league_compare_id.html',
+                           current_year=datetime.now().year)
 
 
 @app.route('/username_compare', methods=['GET'])
 def username_compare_page():
-    return render_template('username_compare_username.html', current_year=datetime.now().year)
+    return render_template('username_compare_username.html',
+                           current_year=datetime.now().year)
 
 
 @app.route('/index', methods=['GET'])
 def index_page():
     return render_template('index.html')
 
+
 @app.route('/not_rostered', methods=['GET'])
 def not_rostered():
     return render_template('not_rostered_username.html')
 
 
-if __name__ == "__main__":
-    app.run(debug=False)
-
 def get_selected_years(form):
     current_year = datetime.now().year
     selected_years = form.getlist('years')  # From the form checkboxes
-    return [int(y) for y in selected_years if y.isdigit() and 2017 <= int(y) <= current_year]
+    return [
+        int(y) for y in selected_years
+        if y.isdigit() and 2017 <= int(y) <= current_year
+    ]
+
 
 def get_player_info(player_id):
     username = session.get('username').strip()
@@ -481,15 +536,23 @@ def get_player_info(player_id):
     player_data = all_players.get(player_id)
     if player_data:
         return {
-            'full_name': player_data.get('full_name') or player_data.get('name', 'Unknown Player'),
-            'position': player_data.get('position', 'Unknown')
+            'full_name':
+            player_data.get('full_name')
+            or player_data.get('name', 'Unknown Player'),
+            'position':
+            player_data.get('position', 'Unknown')
         }
 
     return None
 
 
+# ======================== App Runner ========================
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=True, host="0.0.0.0", port=port)
+
 # This code is part of a Flask application that provides functionality for searching players in fantasy football leagues.
 # It includes routes for searching by username, searching for specific players, and checking if players are not rostered in any leagues.
 # The application uses the Sleeper API to fetch user and league data, and it stores user sessions using Flask-Session.
 # The application also includes features for comparing leagues and usernames, and it provides a web interface for users to interact with the data.
-# The code is structured to handle various scenarios, such as filtering leagues by best ball status and managing user sessions effectively. 
+# The code is structured to handle various scenarios, such as filtering leagues by best ball status and managing user sessions effectively.
