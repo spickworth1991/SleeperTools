@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request, session, jsonify, render_template_string
 from flask_session import Session
 import os
 from models import db, SleeperPlayer, UserSearch, PlayerLeagueAssociation
@@ -215,16 +215,11 @@ def search_player():
     player_name = request.form['player_name'].strip()
     user = UserSearch.query.filter_by(username=username).first()
     if not user:
-        return "User not found"
+        return "User not found", 404
 
     user_id = user.user_id
-
-    # Use leagues stored from initial username search
     filtered_ids = session.get(f'{username}_league_ids', [])
     filtered_names = session.get(f'{username}_league_names', [])
-
-    # Only calculate the searched player
-    searched_player = None
     league_map = {id: name for id, name in zip(filtered_ids, filtered_names)}
 
     searched_player_obj = SleeperPlayer.query.filter(
@@ -242,20 +237,36 @@ def search_player():
             'position': searched_player_obj.position
         }
     else:
+        searched_player = None
         leagues = []
 
-    # Use existing player data from last search
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return render_template_string("""
+            {% if searched_player %}
+                <h2>Search Results for {{ searched_player.name }}</h2>
+                <ul>
+                    {% for league in leagues %}
+                        <li class="league-item"><span class="league-name">{{ league }}</span></li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <h3>No results found for {{ player_name }}</h3>
+            {% endif %}
+        """,
+                                      searched_player=searched_player,
+                                      leagues=leagues,
+                                      player_name=player_name)
+
+    # Fallback for regular full page load
     players = session.get(f'{username}_cached_players', [])
     filter_label = session.get(f'{username}_filter_label', '')
-
-    return render_template(
-        'result.html',
-        username=username,
-        players=players,  # don't recalculate
-        searched_player=searched_player,
-        leagues=leagues,
-        all_leagues=[name for name in filtered_names],
-        filter_label=filter_label)
+    return render_template('result.html',
+                           username=username,
+                           players=players,
+                           searched_player=searched_player,
+                           leagues=leagues,
+                           all_leagues=filtered_names,
+                           filter_label=filter_label)
 
 
 @app.route('/not_rostered_setup', methods=['POST'])

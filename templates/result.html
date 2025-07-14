@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,51 +26,72 @@
                 <label for="leagueFilter">Leagues Used for stock:</label>
                 <select id="leagueFilter" class="form-control">
                     {% for league in all_leagues %}
-                        <option value="{{ league }}">{{ league }}</option>
+                    <option value="{{ league }}">{{ league }}</option>
                     {% endfor %}
                 </select>
             </div>
 
             <ul>
                 {% for player in players %}
-                    <li class="player-item">
-                        <span class="player-name">{{ player.name }} ({{ player.position }}) </span>
-                        <span class="player-percentage">{{ player.percentage }}</span>
-                    </li>
+                <li class="player-item">
+                    <span class="player-name">{{ player.name }} ({{ player.position }}) </span>
+                    <span class="player-percentage">{{ player.percentage }}</span>
+                </li>
                 {% endfor %}
             </ul>
 
         </div>
-        <!-- <div class="search-form">
+        <div class="search-form">
             <h2>Search for a Player</h2>
             <form action="/search_player" method="post">
                 <input type="hidden" name="username" value="{{ username }}">
-                <input type="hidden" name="only_bestball" value="{{ '1' if filter_label == 'Only Best Ball Leagues' else '' }}">
-                <input type="hidden" name="exclude_bestball" value="{{ '1' if filter_label == 'Excluding Best Ball Leagues' else '' }}">
+                <input type="hidden" name="only_bestball"
+                    value="{{ '1' if filter_label == 'Only Best Ball Leagues' else '' }}">
+                <input type="hidden" name="exclude_bestball"
+                    value="{{ '1' if filter_label == 'Excluding Best Ball Leagues' else '' }}">
 
                 <label for="player_name">Player Name:</label>
                 <select id="player_name" name="player_name">
                     {% for player in players %}
-                        <option value="{{ player.name }}">{{ player.name }} ({{ player.position }})</option>
+                    <option value="{{ player.name }}">{{ player.name }} ({{ player.position }})</option>
                     {% endfor %}
                 </select>
                 <button type="submit">Search</button>
             </form>
-            
-            {% if searched_player %}
+
+            <div id="searched-player-results">
+                {% if searched_player %}
                 <h2>Search Results for {{ searched_player.name }}</h2>
                 <ul>
                     {% for league in leagues %}
-                        <li class="league-item">
-                            <span class="league-name">{{ league }}</span>
-                        </li>
+                    <li class="league-item"><span class="league-name">{{ league }}</span></li>
                     {% endfor %}
                 </ul>
-            {% elif player_name %}
+                {% elif player_name %}
                 <h3>No results found for {{ player_name }}</h3>
-            {% endif %}
+                {% endif %}
+            </div>
+
         </div>
-    </div> -->
+    </div>
+    <script>
+        document.querySelector('.search-form form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+
+            const response = await fetch('/search_player', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: formData
+            });
+
+            const html = await response.text();
+            document.getElementById('searched-player-results').innerHTML = html;
+        });
+    </script>
 
 </body>
 
