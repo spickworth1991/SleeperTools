@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Not Rostered Player Search</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
+
 <body>
   <div class="creator-label">Created by: StickyPicky</div>
   <h1 class="center-title">Search Players Not Rostered for {{ username }} Leagues</h1>
@@ -17,23 +19,25 @@
         <label for="player_name">Enter Player Name:</label>
         <input type="text" id="player_name" name="player_name" required>
         <button type="submit">Search</button>
-    </form>
+      </form>
 
 
       {% if not_rostered_results %}
-        <h3>{{ not_rostered_results|length }} out of a total of {{ total_league_count }} Leagues Where {{ player_name }} Is Not Rostered</h3>
-        <p>Here are the leagues where {{ player_name }} is not on a roster:</p>
-        <ul>
-          {% for league in not_rostered_results %}
-            <li class="league-item"><span class="league-name">{{ league }}</span></li>
-          {% endfor %}
-        </ul>
+      <h3>{{ not_rostered_results|length }} out of a total of {{ total_league_count }} Leagues Where {{ player_name }}
+        Is Available</h3>
+      <p>Here are the leagues where {{ player_name }} is available:</p>
+      <ul>
+        {% for league in not_rostered_results %}
+        <li class="league-item"><span class="league-name">{{ league }}</span></li>
+        {% endfor %}
+      </ul>
       {% elif player_name %}
-        <h3>{{ player_name }} is on a roster in all your leagues.</h3>
+      <h3>{{ player_name }} is on a roster in all your leagues.</h3>
       {% endif %}
     </div>
   </div>
   <a href="{{ url_for('home') }}">Back to Home</a>
   <a href="{{ url_for('not_rostered') }}">Back to Not Rostered Username search</a>
 </body>
+
 </html>
