@@ -5,7 +5,7 @@ from models import db, SleeperPlayer, UserSearch, PlayerLeagueAssociation
 import requests
 import logging
 from config import Config
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.config.from_object(Config)
